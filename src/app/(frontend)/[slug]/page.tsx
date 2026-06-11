@@ -12,6 +12,10 @@ import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
+import { ArtistLayout } from '@/components/Artist/ArtistLayout'
+import { MainPage } from '@/components/Artist/MainPage'
+import { ArtistWorks } from '@/components/Artist/ArtistWorks'
+import { ArtistDescription } from '@/components/Artist/ArtistDescription'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -34,7 +38,14 @@ export async function generateStaticParams() {
       return { slug }
     })
 
-  return params
+  // Add artist pages to static params
+  const artistParams = [
+    { slug: 'artist' },
+    { slug: 'artist-works' },
+    { slug: 'artist-description' },
+  ]
+
+  return [...(params || []), ...artistParams]
 }
 
 type Args = {
@@ -49,6 +60,43 @@ export default async function Page({ params: paramsPromise }: Args) {
   // Decode to support slugs with special characters
   const decodedSlug = decodeURIComponent(slug)
   const url = '/' + decodedSlug
+
+  // Handle artist pages
+  if (
+    decodedSlug === 'artist' ||
+    decodedSlug === 'artist-works' ||
+    decodedSlug === 'artist-description'
+  ) {
+    const payload = await getPayload({ config: configPromise })
+    const { docs: artists } = await payload.find({
+      collection: 'artists',
+      limit: 1,
+    })
+
+    const artist = artists?.[0]
+
+    let content = null
+
+    if (decodedSlug === 'artist') {
+      content = <MainPage artist={artist} />
+    } else if (decodedSlug === 'artist-works') {
+      const { docs: works } = await payload.find({
+        collection: 'artist-works',
+        limit: 1000,
+      })
+      content = <ArtistWorks works={works || []} />
+    } else if (decodedSlug === 'artist-description') {
+      content = <ArtistDescription artist={artist} />
+    }
+
+    return (
+      <>
+        {draft && <LivePreviewListener />}
+        <ArtistLayout>{content}</ArtistLayout>
+      </>
+    )
+  }
+
   let page: RequiredDataFromCollectionSlug<'pages'> | null
 
   page = await queryPageBySlug({
@@ -84,6 +132,25 @@ export async function generateMetadata({ params: paramsPromise }: Args): Promise
   const { slug = 'home' } = await paramsPromise
   // Decode to support slugs with special characters
   const decodedSlug = decodeURIComponent(slug)
+
+  // Handle artist pages metadata
+  if (
+    decodedSlug === 'artist' ||
+    decodedSlug === 'artist-works' ||
+    decodedSlug === 'artist-description'
+  ) {
+    const titleMap = {
+      artist: '藝術家主頁',
+      'artist-works': '藝術家作品集',
+      'artist-description': '藝術家簡介',
+    }
+
+    return {
+      title: titleMap[decodedSlug as keyof typeof titleMap] || 'Artist',
+      description: 'Artist portfolio',
+    }
+  }
+
   const page = await queryPageBySlug({
     slug: decodedSlug,
   })

@@ -33,7 +33,8 @@ export const MainPage: React.FC<{ artist?: ArtistType }> = ({ artist }) => {
 
         {/* 描述文字 */}
         <p className="max-w-2xl mx-auto text-gray-300 text-base md:text-lg leading-relaxed mb-12">
-          探索藝術創作的世界，展示獨特的視角與創意表達。 每一個作品都承載著對美的追求。
+          NeoY2K + Music + Animation + Graphic Design
+          <br />
         </p>
       </div>
 
@@ -56,7 +57,7 @@ export const MainPage: React.FC<{ artist?: ArtistType }> = ({ artist }) => {
                 </div>
                 <h2 className="text-white text-2xl md:text-3xl font-light tracking-wider">WORKS</h2>
                 <p className="text-gray-400 text-sm mt-3 group-hover:text-blue-300 transition-colors">
-                  查看作品集 →
+                  find out more →
                 </p>
               </div>
 
